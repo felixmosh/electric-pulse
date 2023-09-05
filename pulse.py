@@ -36,7 +36,7 @@ def main():
         if counter != counter_old:
             counter_old = counter
             print("Counter: %d" % counter)
-            print("Electric meter: %s kWh" % (round(counter / constants.PULSES_FOR_KWH, 2)))
+            print("Electric meter: %.2f kWh" % (counter / constants.PULSES_FOR_KWH))
 
             blink()
 
