@@ -1,4 +1,4 @@
-from machine import Pin
+from machine import Pin, Timer, disable_irq, enable_irq
 import time
 import constants
 
@@ -19,8 +19,19 @@ def blink():
 
 
 def pulse_interrupt_handler(_pin):
+    global counter, pulse
+    before = pulse.value()
+
+    time.sleep_ms(100)
+    after = pulse.value()
+
+    if before == 0 and after == 1:
+        counter += 1
+
+
+def send_to_remote(_timer):
     global counter
-    counter += 1
+    print("Sent Electric meter: %.2f kWh" % (counter / constants.PULSES_FOR_KWH))
 
 
 def main():
@@ -31,7 +42,9 @@ def main():
         blink()
 
     pulse.irq(trigger=Pin.IRQ_FALLING, handler=pulse_interrupt_handler)
-    
+
+    Timer(mode=Timer.PERIODIC, period=constants.ONE_HOUR_MS, callback=send_to_remote)
+
     while True:
         if counter != counter_old:
             counter_old = counter
