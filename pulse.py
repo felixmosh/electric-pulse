@@ -9,13 +9,14 @@ counter = 0
 counter_old = 0
 
 
-def blink():
+def blink(times = 1):
     global led
-
-    led.value(1)
-    time.sleep(0.15)
-    led.value(0)
-    time.sleep(0.15)
+    
+    for _x in range(times):
+        led.value(1)
+        time.sleep(0.15)
+        led.value(0)
+        time.sleep(0.15)
 
 
 def pulse_interrupt_handler(_pin):
@@ -37,9 +38,8 @@ def send_to_remote(_timer):
 def main():
     global counter, counter_old, pulse
 
-    print("Eelectric meter started!")
-    for _x in range(5):
-        blink()
+    print("Electric meter started!")
+    blink(5)
 
     pulse.irq(trigger=Pin.IRQ_FALLING, handler=pulse_interrupt_handler)
 

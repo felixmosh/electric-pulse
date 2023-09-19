@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Electric-Meter</title>
+</head>
+
+<body>
+    <h1>Setup</h1>
+    <p>You are connected to the Electric-Meter setup page.</p>
+    <form action="/configure" method="POST" autocomplete="off" autocapitalize="none">
+        <fieldset>
+            <legend>
+                Wifi settings
+            </legend>
+            <label for="ssid">SSID:</label><br>
+            <input type="text" id="ssid" name="ssid"><br>
+            <label for="wifi-password">Password:</label><br>
+            <input type="text" id="wifi-password" name="wifi-password"><br><br>
+        </fieldset>
+        <fieldset>
+            <legend>UI settings</legend>
+            <label for="ui-password">Access password:</label><br>
+            <input type="text" id="ui-password" name="ui-password" />
+        </fieldset>
+        <fieldset>
+            <legend>Server settings</legend>
+            <label for="api-endpoint">API endpoint:</label><br>
+            <input type="text" id="api-endpoint" name="api-endpoint" />
+        </fieldset>
+        <button>Save</button>
+    </form>
+</body>
+
+</html>
