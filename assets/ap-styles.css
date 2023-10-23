@@ -1,30 +1,99 @@
 :root {
     font-size: 16px;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
 body {
     background: rgb(205,255,238);
-    background: linear-gradient(180deg, rgba(205,255,238,1) 0%, rgba(141,236,255,1) 100%);
+    background: linear-gradient(180deg, rgb(207, 247, 255) 0%, rgba(141,236,255,1) 100%);
     background-repeat: no-repeat;
     background-attachment: fixed;
     margin: 1rem;
+    color: rgb(40, 46, 59);
 }
 
 fieldset {
+    display: flex;
+    flex-direction: column;
     margin-bottom: 1.5rem;
-    border: 1px solid rgba(0,0,0,0.2);
-    border-radius: 0.25rem;
+    border: 1px solid rgba(40, 46, 59,0.2);    
+    border-radius: 6px;
+    box-shadow: 0 15px 35px 0 rgba( 60,66,87 , .08 ) ,0 5px 15px 0 rgba( 0,0,0 , .12 );
     padding-top: 1rem;
+    transition: border-color 200ms ease-in-out, background-color 200ms ease-out;
+}
+
+fieldset:focus-within {
+    background-color: rgba(255,255,255,0.2);
+    border-color: rgba(40, 46, 59,.4);
 }
 
 input {
-    display: block;
-    height: 1.5rem;
+    flex: 1;
+    font-size: 0.9em;
+    line-height: 1.4rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    border: 1px solid rgba(0,0,0,0.2);
+    transition: box-shadow 200ms ease-out;
 }
+
+input:focus {
+    outline: none;
+    box-shadow: rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(58, 151, 212, 0.36) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(60, 66, 87, 0.16) 0px 0px 0px 1px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px;
+}
+
 input + label {
     margin-top: 1rem;
 }
+
 label {
-    display: block;
-    margin-bottom: 0.25rem;
+    flex: 1;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.button {
+  appearance: button;
+  backface-visibility: hidden;
+  background-color: #405cf5;
+  border-radius: 6px;
+  border-width: 0;
+  box-shadow: rgba(50, 50, 93, .1) 0 0 0 1px inset,rgba(50, 50, 93, .1) 0 2px 5px 0,rgba(0, 0, 0, .07) 0 1px 1px 0;
+  box-sizing: border-box;
+  color: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 100%;
+  height: 2.5rem;
+  line-height: 1.15;
+  margin: 0;
+  outline: none;
+  overflow: hidden;
+  padding: 0 25px;
+  position: relative;
+  text-align: center;
+  text-transform: none;
+  transform: translateZ(0);
+  transition: all .2s,box-shadow .08s ease-in;
+  user-select: none;
+  touch-action: manipulation;
+  width: 100%;
+  transition: box-shadow 200ms ease-out;
+}
+
+.button:disabled {
+  cursor: default;
+}
+
+.button:hover {
+    background-color: #4f68f8;
+}
+
+.button:focus {
+  box-shadow: rgba(50, 50, 93, .1) 0 0 0 1px inset, rgba(50, 50, 93, .2) 0 6px 15px 0, rgba(0, 0, 0, .1) 0 2px 2px 0, rgba(50, 151, 211, .3) 0 0 0 4px;
+}
+
+.hide {
+  display: none;
 }

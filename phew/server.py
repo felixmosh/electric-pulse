@@ -1,4 +1,5 @@
 import uasyncio, os, time
+import json
 from . import logging
 
 _routes = []
@@ -284,6 +285,9 @@ async def _handle_request(reader, writer):
     # if shorthand body text only notation used then convert to tuple
     if isinstance(response, str):
         response = (response,)
+
+    if isinstance(response, dict):
+        response = (json.dumps(response), 200, "application/json")
 
     # if shorthand tuple notation used then build full response object
     if isinstance(response, tuple):

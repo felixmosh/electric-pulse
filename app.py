@@ -1,17 +1,11 @@
 from phew import access_point, connect_to_wifi, is_connected_to_wifi, dns, server
 from phew.template import render_template
+import constants
 import json
 import machine
 import os
 import utime
 import _thread
-
-AP_NAME = "Electric-Meter"
-AP_DOMAIN = "electric-meter.local"
-AP_TEMPLATE_PATH = "templates/ap"
-APP_TEMPLATE_PATH = "templates/app"
-CONFIGS_FILE = "configs.json"
-WIFI_MAX_ATTEMPTS = 3
 
 
 def machine_reset():
@@ -24,39 +18,52 @@ def setup_mode():
     print("Entering setup mode...")
 
     def ap_index(request):
-        if request.headers.get("host").lower() != AP_DOMAIN.lower():
-            return render_template(
-                f"{AP_TEMPLATE_PATH}/redirect.html", domain=AP_DOMAIN.lower()
-            )
+        if request.headers.get("host").lower() != constants.AP_DOMAIN.lower():
+            return server.redirect(constants.AP_DOMAIN.lower())
 
-        return render_template(f"{AP_TEMPLATE_PATH}/index.html")
+        return render_template(f"{constants.AP_TEMPLATE_PATH}/index.html")
 
     def ap_configure(request):
-        print("Saving wifi credentials... %s" % json.dumps(request.form))
+        print("Saving config... %s" % json.dumps(request.data))
 
-        with open(CONFIGS_FILE, "w") as f:
-            json.dump(request.form, f)
+        with open(constants.CONFIGS_FILE, "w") as f:
+            json.dump(request.data, f)
             f.close()
 
         # Reboot from new thread after we have responded to the user.
         _thread.start_new_thread(machine_reset, ())
-        return render_template(
-            f"{AP_TEMPLATE_PATH}/configured.html", ssid=request.form["ssid"]
-        )
+        return {"status": 1}
+
+    def static_assets(request, filename=""):
+        if filename:
+            print("filename = %s" % filename)
+            allowed_extensions = [".js", ".css"]
+            is_allowed_ext = False
+            for extension in allowed_extensions:
+                if filename.endswith(extension):
+                    is_allowed_ext = True
+                    break
+
+            if is_allowed_ext:
+                return server.FileResponse(f"{constants.ASSETS_PATH}/{filename}")
+
+        return "Not found.", 404
 
     def ap_catch_all(request):
-        if request.headers.get("host") != AP_DOMAIN:
+        if request.headers.get("host") != constants.AP_DOMAIN:
             return render_template(
-                f"{AP_TEMPLATE_PATH}/redirect.html", domain=AP_DOMAIN
+                f"{constants.AP_TEMPLATE_PATH}/redirect.html",
+                domain=constants.AP_DOMAIN,
             )
 
         return "Not found.", 404
 
     server.add_route("/", handler=ap_index, methods=["GET"])
     server.add_route("/configure", handler=ap_configure, methods=["POST"])
+    server.add_route("/assets/<filename>", handler=static_assets)
     server.set_callback(ap_catch_all)
 
-    ap = access_point(AP_NAME)
+    ap = access_point(constants.AP_NAME)
     ip = ap.ifconfig()[0]
     dns.run_catchall(ip)
 
@@ -66,7 +73,7 @@ def application_mode():
     onboard_led = machine.Pin("LED", machine.Pin.OUT)
 
     def app_index(request):
-        return render_template(f"{APP_TEMPLATE_PATH}/index.html")
+        return render_template(f"{constants.APP_TEMPLATE_PATH}/index.html")
 
     def app_toggle_led(request):
         onboard_led.toggle()
@@ -87,11 +94,12 @@ def application_mode():
     def app_reset(request):
         # Deleting the WIFI configuration file will cause the device to reboot as
         # the access point and request new configuration.
-        os.remove(CONFIGS_FILE)
+        os.remove(constants.CONFIGS_FILE)
         # Reboot from new thread after we have responded to the user.
         _thread.start_new_thread(machine_reset, ())
         return render_template(
-            f"{APP_TEMPLATE_PATH}/reset.html", access_point_ssid=AP_NAME
+            f"{constants.APP_TEMPLATE_PATH}/reset.html",
+            access_point_ssid=constants.AP_NAME,
         )
 
     def app_catch_all(request):
@@ -107,15 +115,15 @@ def application_mode():
 
 # Figure out which mode to start up in...
 try:
-    os.stat(CONFIGS_FILE)
+    os.stat(constants.CONFIGS_FILE)
 
     # File was found, attempt to connect to wifi...
-    with open(CONFIGS_FILE) as f:
+    with open(constants.CONFIGS_FILE) as f:
         wifi_current_attempt = 1
         configs = json.load(f)
 
-        while wifi_current_attempt < WIFI_MAX_ATTEMPTS:
-            ip_address = connect_to_wifi(configs["ssid"], configs["wifi-password"])
+        while wifi_current_attempt < constants.WIFI_MAX_ATTEMPTS:
+            ip_address = connect_to_wifi(configs["ssid"], configs["wifiPassword"])
 
             if is_connected_to_wifi():
                 print(f"Connected to wifi, IP address {ip_address}")
@@ -130,7 +138,7 @@ try:
             # into setup mode to get new credentials from the user.
             print("Bad wifi connection!")
             print(configs)
-            os.remove(CONFIGS_FILE)
+            os.remove(constants.CONFIGS_FILE)
             machine_reset()
 
 except Exception:

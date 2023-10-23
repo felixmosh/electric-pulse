@@ -4,33 +4,47 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Electric-Meter</title>
+    <link rel="stylesheet" href="/assets/ap-styles.css"/>
+    <script src="/assets/ap-setup.js" async></script>
 </head>
 
 <body>
+<div class="form-container">
     <h1>Setup</h1>
     <p>You are connected to the Electric-Meter setup page.</p>
     <form action="/configure" method="POST" autocomplete="off" autocapitalize="none">
         <fieldset>
-            <legend>
-                Wifi settings
-            </legend>
-            <label for="ssid">SSID:</label><br>
-            <input type="text" id="ssid" name="ssid"><br>
-            <label for="wifi-password">Password:</label><br>
-            <input type="text" id="wifi-password" name="wifi-password"><br><br>
+            <legend>Wifi settings</legend>
+            <label for="ssid">SSID:</label>
+            <input type="text" id="ssid" name="ssid">
+            <label for="wifiPassword">Password:</label>
+            <input type="password" id="wifiPassword" name="wifiPassword">
         </fieldset>
         <fieldset>
             <legend>UI settings</legend>
-            <label for="ui-password">Access password:</label><br>
-            <input type="text" id="ui-password" name="ui-password" />
+            <label for="uiUser">Username:</label>
+            <input type="text" id="uiUser" name="uiUser"/>
+            <label for="uiPassword">Password:</label>
+            <input type="password" id="uiPassword" name="uiPassword"/>
         </fieldset>
         <fieldset>
-            <legend>Server settings</legend>
-            <label for="api-endpoint">API endpoint:</label><br>
-            <input type="text" id="api-endpoint" name="api-endpoint" />
+            <legend>Meter settings</legend>
+            <label for="apiEndpoint">API endpoint:</label>
+            <input type="text" id="apiEndpoint" name="apiEndpoint"/>
+            <label for="reportInterval">Report every: (hours)</label>
+            <input type="number" id="reportInterval" name="reportInterval" value="1" min="0" step="0.1"/>
         </fieldset>
-        <button>Save</button>
+        <button class="button">Save</button>
     </form>
+</div>
+<div class="success-message hide">
+    <h1>Configured</h1>
+    <p>The Electric-Meter will now reboot and attempt to connect to the &quot;{{ssid}}&quot; wireless network...</p>
+</div>
+<div class="error-message hide">
+    <h1>Error</h1>
+    <p>{{message}}</p>
+</div>
 </body>
 
 </html>
