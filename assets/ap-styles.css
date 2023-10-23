@@ -1,0 +1,30 @@
+:root {
+    font-size: 16px;
+}
+
+body {
+    background: rgb(205,255,238);
+    background: linear-gradient(180deg, rgba(205,255,238,1) 0%, rgba(141,236,255,1) 100%);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    margin: 1rem;
+}
+
+fieldset {
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(0,0,0,0.2);
+    border-radius: 0.25rem;
+    padding-top: 1rem;
+}
+
+input {
+    display: block;
+    height: 1.5rem;
+}
+input + label {
+    margin-top: 1rem;
+}
+label {
+    display: block;
+    margin-bottom: 0.25rem;
+}
