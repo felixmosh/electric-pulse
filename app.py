@@ -63,22 +63,33 @@ def setup_mode():
     server.add_route("/assets/<filename>", handler=static_assets)
     server.set_callback(ap_catch_all)
 
-    ap = access_point(constants.AP_NAME)
+    ap = access_point(constants.APP_NAME)
     ip = ap.ifconfig()[0]
     dns.run_catchall(ip)
 
 
-def application_mode():
+def application_mode(configs):
     print("Entering application mode.")
     onboard_led = machine.Pin("LED", machine.Pin.OUT)
 
+    auth_middleware = None
+    if configs.get("uiUser") and configs.get("uiPassword"):
+        auth_middleware = server.basic_auth(
+            username=configs.get("uiUser"),
+            password=configs.get("uiPassword"),
+            realm=constants.APP_NAME,
+        )
+
+    @server.route("/", middleware=auth_middleware)
     def app_index(request):
         return render_template(f"{constants.APP_TEMPLATE_PATH}/index.html")
 
+    @server.route("/toggle", middleware=auth_middleware)
     def app_toggle_led(request):
         onboard_led.toggle()
         return "OK"
 
+    @server.route("/temperature", middleware=auth_middleware)
     def app_get_temperature(request):
         # Not particularly reliable but uses built in hardware.
         # Demos how to incorporate senasor data into this application.
@@ -91,6 +102,7 @@ def application_mode():
         temperature = 27 - (reading - 0.706) / 0.001721
         return f"{round(temperature, 1)}"
 
+    @server.route("/reset", middleware=auth_middleware)
     def app_reset(request):
         # Deleting the WIFI configuration file will cause the device to reboot as
         # the access point and request new configuration.
@@ -102,15 +114,9 @@ def application_mode():
             access_point_ssid=constants.AP_NAME,
         )
 
+    @server.catchall()
     def app_catch_all(request):
         return "Not found.", 404
-
-    server.add_route("/", handler=app_index, methods=["GET"])
-    server.add_route("/toggle", handler=app_toggle_led, methods=["GET"])
-    server.add_route("/temperature", handler=app_get_temperature, methods=["GET"])
-    server.add_route("/reset", handler=app_reset, methods=["GET"])
-    # Add other routes for your application...
-    server.set_callback(app_catch_all)
 
 
 # Figure out which mode to start up in...
@@ -123,7 +129,9 @@ try:
         configs = json.load(f)
 
         while wifi_current_attempt < constants.WIFI_MAX_ATTEMPTS:
-            ip_address = connect_to_wifi(configs["ssid"], configs["wifiPassword"])
+            ip_address = connect_to_wifi(
+                configs.get("ssid"), configs.get("wifiPassword")
+            )
 
             if is_connected_to_wifi():
                 print(f"Connected to wifi, IP address {ip_address}")
@@ -132,7 +140,7 @@ try:
                 wifi_current_attempt += 1
 
         if is_connected_to_wifi():
-            application_mode()
+            application_mode(configs)
         else:
             # Bad configuration, delete the credentials file, reboot
             # into setup mode to get new credentials from the user.

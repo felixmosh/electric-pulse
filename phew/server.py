@@ -1,6 +1,7 @@
 import uasyncio, os, time
 import json
 from . import logging
+import base64
 
 _routes = []
 catchall_handler = None
@@ -113,10 +114,11 @@ class FileResponse(Response):
 
 
 class Route:
-    def __init__(self, path, handler, methods=["GET"]):
+    def __init__(self, path, handler, methods=["GET"], middleware=None):
         self.path = path
         self.methods = methods
         self.handler = handler
+        self.middleware = middleware
         self.path_parts = path.split("/")
 
     # returns True if the supplied request matches this route
@@ -138,6 +140,10 @@ class Route:
             if part.startswith("<"):
                 name = part[1:-1]
                 parameters[name] = compare
+        if self.middleware is not None:
+            maybe_response = self.middleware(request, **parameters)
+            if maybe_response is not None:
+                return maybe_response
 
         return self.handler(request, **parameters)
 
@@ -294,7 +300,8 @@ async def _handle_request(reader, writer):
         body = response[0]
         status = response[1] if len(response) >= 2 else 200
         content_type = response[2] if len(response) >= 3 else "text/html"
-        response = Response(body, status=status)
+        headers = response[3] if len(response) >= 4 else {}
+        response = Response(body, status=status, headers=headers)
         response.add_header("Content-Type", content_type)
         if hasattr(body, "__len__"):
             response.add_header("Content-Length", len(body))
@@ -339,9 +346,9 @@ async def _handle_request(reader, writer):
 
 
 # adds a new route to the routing table
-def add_route(path, handler, methods=["GET"]):
+def add_route(path, handler, methods=["GET"], middleware=None):
     global _routes
-    _routes.append(Route(path, handler, methods))
+    _routes.append(Route(path, handler, methods, middleware))
     # descending complexity order so most complex routes matched first
     _routes = sorted(_routes, key=lambda route: len(route.path_parts), reverse=True)
 
@@ -352,9 +359,9 @@ def set_callback(handler):
 
 
 # decorator shorthand for adding a route
-def route(path, methods=["GET"]):
+def route(path, methods=["GET"], middleware=None):
     def _route(f):
-        add_route(path, f, methods=methods)
+        add_route(path, f, methods=methods, middleware=middleware)
         return f
 
     return _route
@@ -375,6 +382,28 @@ def redirect(url, status=301):
 
 def serve_file(file):
     return FileResponse(file)
+
+
+def basic_auth(username, password, realm="Protected area"):
+    def _basic_auth_middleware(request):
+        if "authorization" in request.headers:
+            parts = request.headers["authorization"].split(" ")
+
+            if len(parts) == 2 and parts[0].lower() == "basic":
+                value = base64.b64decode(parts[1]).decode().split(":")
+                print("value", value)
+
+                if len(value) == 2 and value[0] == username and value[1] == password:
+                    return None
+
+        return (
+            "Unauthorized",
+            401,
+            "text/plain",
+            {"WWW-Authenticate": "Basic realm=%s" % realm},
+        )
+
+    return _basic_auth_middleware
 
 
 def run(host="0.0.0.0", port=80):

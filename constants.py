@@ -2,7 +2,7 @@
 PULSES_FOR_KWH = 800
 ONE_HOUR_MS = 60 * 60 * 1000
 
-AP_NAME = "Electric-Meter"
+APP_NAME = "Electric-Meter"
 AP_DOMAIN = "electric-meter.local"
 AP_TEMPLATE_PATH = "templates/ap"
 APP_TEMPLATE_PATH = "templates/app"
