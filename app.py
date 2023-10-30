@@ -111,7 +111,7 @@ def application_mode(configs):
         _thread.start_new_thread(machine_reset, ())
         return render_template(
             f"{constants.APP_TEMPLATE_PATH}/reset.html",
-            access_point_ssid=constants.AP_NAME,
+            access_point_ssid=constants.APP_NAME,
         )
 
     @server.catchall()
