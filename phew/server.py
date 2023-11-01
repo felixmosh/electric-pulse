@@ -391,7 +391,6 @@ def basic_auth(username, password, realm="Protected area"):
 
             if len(parts) == 2 and parts[0].lower() == "basic":
                 value = base64.b64decode(parts[1]).decode().split(":")
-                print("value", value)
 
                 if len(value) == 2 and value[0] == username and value[1] == password:
                     return None
