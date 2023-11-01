@@ -21,7 +21,7 @@ def setup_mode():
         if request.headers.get("host").lower() != constants.AP_DOMAIN.lower():
             return server.redirect(constants.AP_DOMAIN.lower())
 
-        return render_template(f"{constants.AP_TEMPLATE_PATH}/index.html")
+        return server.FileResponse(f"{constants.AP_TEMPLATE_PATH}/index.html")
 
     def ap_configure(request):
         print("Saving config... %s" % json.dumps(request.data))
@@ -36,7 +36,6 @@ def setup_mode():
 
     def static_assets(request, filename=""):
         if filename:
-            print("filename = %s" % filename)
             allowed_extensions = [".js", ".css"]
             is_allowed_ext = False
             for extension in allowed_extensions:
@@ -129,9 +128,11 @@ try:
         configs = json.load(f)
 
         while wifi_current_attempt < constants.WIFI_MAX_ATTEMPTS:
-            ip_address = connect_to_wifi(
-                configs.get("ssid"), configs.get("wifiPassword")
-            )
+            ssid = configs.get("ssid")
+            wifi_password = configs.get("wifiPassword")
+            print(f"Connecting to wifi, ssid {ssid}, attempt {wifi_current_attempt}")
+
+            ip_address = connect_to_wifi(ssid, wifi_password)
 
             if is_connected_to_wifi():
                 print(f"Connected to wifi, IP address {ip_address}")

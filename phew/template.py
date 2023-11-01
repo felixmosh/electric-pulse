@@ -1,65 +1,69 @@
 from . import logging
 
+
 async def render_template(template, **kwargs):
-  import time
-  start_time = time.ticks_ms()
+    import time
 
-  with open(template, "rb") as f:
-    # read the whole template file, we could work on single lines but
-    # the performance is much worse - so long as our templates are
-    # just a handful of kB it's ok to do this
-    data = f.read()
-    token_caret = 0
+    start_time = time.ticks_ms()
 
-    while True:
-      # find the next tag that needs evaluating
-      start = data.find(b"{{", token_caret)
-      end = data.find(b"}}", start)
+    with open(template, "rb") as f:
+        # read the whole template file, we could work on single lines but
+        # the performance is much worse - so long as our templates are
+        # just a handful of kB it's ok to do this
+        data = f.read()
+        token_caret = 0
 
-      match = start != -1 and end != -1
+        while True:
+            # find the next tag that needs evaluating
+            start = data.find(b"{{", token_caret)
+            end = data.find(b"}}", start)
 
-      # no more magic to handle, just return what's left
-      if not match:
-        yield data[token_caret:]
-        break
+            match = start != -1 and end != -1
 
-      expression = data[start + 2:end].strip()
+            # no more magic to handle, just return what's left
+            if not match:
+                yield data[token_caret:]
+                break
 
-      # output the bit before the tag
-      yield data[token_caret:start]
+            expression = data[start + 2 : end].strip()
 
-      # merge locals with the supplied named arguments and
-      # the response object
-      params = {}
-      params.update(locals())
-      params.update(kwargs)
-      #params["response"] = response
+            # output the bit before the tag
+            yield data[token_caret:start]
 
-      # parse the expression
-      try:
-        if expression.decode("utf-8") in params:
-          result = params[expression.decode("utf-8")]
-          result = result.replace("&", "&amp;")
-          result = result.replace('"', "&quot;")
-          result = result.replace("'", "&apos;")
-          result = result.replace(">", "&gt;")
-          result = result.replace("<", "&lt;")
-        else:
-          result = eval(expression, globals(), params)
+            # merge locals with the supplied named arguments and
+            # the response object
+            params = {}
+            params.update(locals())
+            params.update(kwargs)
+            # params["response"] = response
 
-        if type(result).__name__ == "generator":
-          # if expression returned a generator then iterate it fully
-          # and yield each result
-          for chunk in result:
-            yield chunk
-        else:
-          # yield the result of the expression
-          if result is not None:
-            yield str(result)
-      except:
-        pass
+            # parse the expression
+            try:
+                if expression.decode("utf-8") in params:
+                    result = params[expression.decode("utf-8")]
+                    result = result.replace("&", "&amp;")
+                    result = result.replace('"', "&quot;")
+                    result = result.replace("'", "&apos;")
+                    result = result.replace(">", "&gt;")
+                    result = result.replace("<", "&lt;")
+                else:
+                    result = eval(expression, globals(), params)
 
-      # discard the parsed bit
-      token_caret = end + 2
+                if type(result).__name__ == "generator":
+                    # if expression returned a generator then iterate it fully
+                    # and yield each result
+                    for chunk in result:
+                        yield chunk
+                else:
+                    # yield the result of the expression
+                    if result is not None:
+                        yield str(result)
+            except:
+                pass
 
-  logging.debug("> parsed template:", template, "(took", time.ticks_ms() - start_time, "ms)")
+            # discard the parsed bit
+            token_caret = end + 2
+
+    logging.debug(
+        "> parsed template:", template, "(took", time.ticks_ms() - start_time, "ms)"
+    )
