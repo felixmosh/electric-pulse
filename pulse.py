@@ -9,9 +9,9 @@ counter = 0
 counter_old = 0
 
 
-def blink(times = 1):
+def blink(times=1):
     global led
-    
+
     for _x in range(times):
         led.value(1)
         time.sleep(0.15)
@@ -35,15 +35,12 @@ def send_to_remote(_timer):
     print("Sent Electric meter: %.2f kWh" % (counter / constants.PULSES_FOR_KWH))
 
 
-def main():
+def start(pulse_per_kwh=constants.PULSES_FOR_KWH):
     global counter, counter_old, pulse
 
     print("Electric meter started!")
-    blink(5)
 
     pulse.irq(trigger=Pin.IRQ_FALLING, handler=pulse_interrupt_handler)
-
-    Timer(mode=Timer.PERIODIC, period=constants.ONE_HOUR_MS, callback=send_to_remote)
 
     while True:
         if counter != counter_old:
@@ -52,6 +49,3 @@ def main():
             print("Electric meter: %.2f kWh" % (counter / constants.PULSES_FOR_KWH))
 
             blink()
-
-
-main()

@@ -6,7 +6,19 @@ window.addEventListener("load", () => {
   form.addEventListener("submit", (event) => {
     event.preventDefault();
     const formData = new FormData(form);
-    const params = Object.fromEntries(formData.entries());
+    const params = {};
+
+    for(const [key, value] of formData.entries()) {
+      const match = key.match(/(\w+)\[([^\]]+)\]/)
+      const cleanValue = /^\d+$/.test(value)? +value : value;
+      if(match) {
+        const [_m, prop, nested] = match;
+        params[prop] = params[prop] || {};
+        params[prop][nested] = cleanValue
+      } else {
+        params[key] = cleanValue;
+      }
+    }
 
     fetch(form.action, {
       method: form.method,
