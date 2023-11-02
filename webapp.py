@@ -88,8 +88,8 @@ def application_mode(configs):
     ui = configs.get("ui")
     if ui.get("username") and ui.get("password"):
         auth_middleware = server.basic_auth(
-            username=configs.get("username"),
-            password=configs.get("password"),
+            username=ui.get("username"),
+            password=ui.get("password"),
             realm=constants.APP_NAME,
         )
 
@@ -132,44 +132,36 @@ def application_mode(configs):
         return "Not found.", 404
 
 
-def start():
+def start(configs):
     # Figure out which mode to start up in...
-    try:
-        os.stat(constants.CONFIGS_FILE)
+    if configs is not None and "wifi" in configs:
+        wifi_current_attempt = 1
 
-        # File was found, attempt to connect to wifi...
-        with open(constants.CONFIGS_FILE) as f:
-            wifi_current_attempt = 1
-            configs = json.load(f)
+        while wifi_current_attempt <= constants.WIFI_MAX_ATTEMPTS:
+            blink(wifi_current_attempt)
+            wifi = configs.get("wifi")
+            ssid = wifi.get("ssid")
+            wifi_password = wifi.get("password")
+            print(f"Connecting to wifi, ssid {ssid}, attempt {wifi_current_attempt}")
 
-            while wifi_current_attempt <= constants.WIFI_MAX_ATTEMPTS:
-                blink(wifi_current_attempt)
-                wifi = configs.get("wifi")
-                ssid = wifi.get("ssid")
-                wifi_password = wifi.get("password")
-                print(
-                    f"Connecting to wifi, ssid {ssid}, attempt {wifi_current_attempt}"
-                )
-
-                ip_address = connect_to_wifi(ssid, wifi_password)
-
-                if is_connected_to_wifi():
-                    print(f"Connected to wifi, IP address {ip_address}")
-                    break
-                else:
-                    wifi_current_attempt += 1
+            ip_address = connect_to_wifi(ssid, wifi_password)
 
             if is_connected_to_wifi():
-                application_mode(configs)
+                print(f"Connected to wifi, IP address {ip_address}")
+                break
             else:
-                # Bad configuration, delete the credentials file, reboot
-                # into setup mode to get new credentials from the user.
-                print("Bad wifi connection!")
-                print(configs)
-                os.remove(constants.CONFIGS_FILE)
-                machine_reset()
+                wifi_current_attempt += 1
 
-    except Exception:
+        if is_connected_to_wifi():
+            application_mode(configs)
+        else:
+            # Bad configuration, delete the credentials file, reboot
+            # into setup mode to get new credentials from the user.
+            print("Bad wifi connection!")
+            print(configs)
+            os.remove(constants.CONFIGS_FILE)
+            machine_reset()
+    else:
         # Either no wifi configuration file found, or something went wrong,
         # so go into setup mode.
         blink(constants.WIFI_MAX_ATTEMPTS + 1)

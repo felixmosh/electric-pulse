@@ -8,13 +8,13 @@ window.addEventListener("load", () => {
     const formData = new FormData(form);
     const params = {};
 
-    for(const [key, value] of formData.entries()) {
-      const match = key.match(/(\w+)\[([^\]]+)\]/)
-      const cleanValue = /^\d+$/.test(value)? +value : value;
-      if(match) {
+    for (const [key, value] of formData.entries()) {
+      const match = key.match(/(\w+)\[([^\]]+)\]/);
+      const cleanValue = /^\d+$/.test(value) ? +value : value;
+      if (match) {
         const [_m, prop, nested] = match;
         params[prop] = params[prop] || {};
-        params[prop][nested] = cleanValue
+        params[prop][nested] = cleanValue;
       } else {
         params[key] = cleanValue;
       }
@@ -35,7 +35,7 @@ window.addEventListener("load", () => {
           const messageP = successMessage.querySelector("p");
           messageP.textContent = messageP.textContent.replace(
             "{{ssid}}",
-            params.ssid
+            params.wifi.ssid
           );
           formContainer.classList.toggle("hide");
           successMessage.classList.toggle("hide");
