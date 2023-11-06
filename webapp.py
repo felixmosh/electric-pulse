@@ -43,7 +43,7 @@ def static_assets(request, filename=""):
     return "Not found.", 404
 
 
-def setup_mode():
+def setup_mode(on_close):
     print("Entering setup mode...")
 
     @server.route("/")
@@ -62,6 +62,7 @@ def setup_mode():
             f.close()
 
         # Reboot from new thread after we have responded to the user.
+        on_close()
         _thread.start_new_thread(machine_reset, ())
         return {"status": 1}
 
@@ -80,7 +81,7 @@ def setup_mode():
     dns.run_catchall(ip)
 
 
-def application_mode(configs):
+def application_mode(configs, counter, on_close):
     global onboard_led
     print("Entering application mode.")
 
@@ -102,18 +103,9 @@ def application_mode(configs):
         onboard_led.toggle()
         return "OK"
 
-    @server.route("/temperature", middleware=auth_middleware)
-    def app_get_temperature(request):
-        # Not particularly reliable but uses built in hardware.
-        # Demos how to incorporate senasor data into this application.
-        # The front end polls this route and displays the output.
-        # Replace code here with something else for a 'real' sensor.
-        # Algorithm used here is from:
-        # https://www.coderdojotc.org/micropython/advanced-labs/03-internal-temperature/
-        sensor_temp = machine.ADC(4)
-        reading = sensor_temp.read_u16() * (3.3 / (65535))
-        temperature = 27 - (reading - 0.706) / 0.001721
-        return f"{round(temperature, 1)}"
+    @server.route("/counter", middleware=auth_middleware)
+    def app_get_counter(request):
+        return f"{counter}"
 
     @server.route("/reset", middleware=auth_middleware)
     def app_reset(request):
@@ -121,6 +113,7 @@ def application_mode(configs):
         # the access point and request new configuration.
         os.remove(constants.CONFIGS_FILE)
         # Reboot from new thread after we have responded to the user.
+        on_close()
         _thread.start_new_thread(machine_reset, ())
         return render_template(
             f"{constants.APP_TEMPLATE_PATH}/reset.html",
@@ -132,7 +125,7 @@ def application_mode(configs):
         return "Not found.", 404
 
 
-def start(configs):
+def start(configs, counter, on_close):
     # Figure out which mode to start up in...
     if configs is not None and "wifi" in configs:
         wifi_current_attempt = 1
@@ -153,19 +146,20 @@ def start(configs):
                 wifi_current_attempt += 1
 
         if is_connected_to_wifi():
-            application_mode(configs)
+            application_mode(configs, counter, on_close)
         else:
             # Bad configuration, delete the credentials file, reboot
             # into setup mode to get new credentials from the user.
             print("Bad wifi connection!")
             print(configs)
             os.remove(constants.CONFIGS_FILE)
+            on_close()
             machine_reset()
     else:
         # Either no wifi configuration file found, or something went wrong,
         # so go into setup mode.
         blink(constants.WIFI_MAX_ATTEMPTS + 1)
-        setup_mode()
+        setup_mode(on_close)
 
     # Start the web server...
     return server.start()

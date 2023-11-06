@@ -7,14 +7,14 @@ window.addEventListener("load", () => {
     window.location.href = "/reset";
   };
 
-  async function getTemp() {
-    const elem = document.getElementById("tempValue");
+  async function getCounter() {
+    const elem = document.getElementById("counter");
     elem.textContent = "Updating...";
-    const t = await fetch("/temperature");
-    const tVal = await t.text();
-    elem.textContent = tVal + "C.";
-    setTimeout(getTemp, 10000);
+    const t = await fetch("/counter");
+    const counterVal = await t.text();
+    elem.textContent = counterVal;
+    setTimeout(getCounter, 10000);
   }
 
-  getTemp();
+  getCounter();
 });
