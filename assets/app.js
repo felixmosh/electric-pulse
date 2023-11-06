@@ -10,9 +10,13 @@ window.addEventListener("load", () => {
   async function getCounter() {
     const elem = document.getElementById("counter");
     elem.textContent = "Updating...";
-    const t = await fetch("/counter");
-    const counterVal = await t.text();
-    elem.textContent = counterVal;
+    try {
+      const t = await fetch("/counter");
+      const counterVal = await t.text();
+      elem.textContent = counterVal;
+    } catch (e) {
+      console.error(e);
+    }
     setTimeout(getCounter, 10000);
   }
 

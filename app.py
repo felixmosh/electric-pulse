@@ -4,9 +4,10 @@ import os
 import constants
 import json
 import _thread
-from machine import Pin, Timer
+from machine import Pin
 import time
 from counter import Counter
+import asyncio
 
 configs = {}
 try:
@@ -22,8 +23,15 @@ except Exception:
 
 
 pulses_per_kwh = configs.get("pulsesPerKwh", constants.PULSES_FOR_KWH)
-counter = Counter(pulses_per_kwh, 1222)
+counter = Counter(pulses_per_kwh, 1736)
 exit_counter_core_flag = False
+
+
+async def send_to_remote(counter, configs):
+    delay_min = configs.get("reportInterval", 60)
+    while True:
+        await asyncio.sleep(delay_min * 60)
+        print("Send value to remote: %s" % counter)
 
 
 def start_pulse():
@@ -36,7 +44,7 @@ def start_pulse():
 
     while not exit_counter_core_flag:
         before = pulse.value()
-        time.sleep_ms(100)
+        time.sleep_ms(25)
         after = pulse.value()
 
         if before == 0 and after == 1:
@@ -60,6 +68,7 @@ def on_close():
 try:
     loop = uasyncio.get_event_loop()
     loop.create_task(webapp.start(configs, counter, on_close))
+    loop.create_task(send_to_remote(counter, configs))
     loop.run_forever()
 except KeyboardInterrupt:
     on_close()
