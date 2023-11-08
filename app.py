@@ -23,11 +23,12 @@ except Exception:
 
 
 pulses_per_kwh = configs.get("pulsesPerKwh", constants.PULSES_FOR_KWH)
-counter = Counter(pulses_per_kwh, 1736)
+initial_value = 2040
+counter = Counter(pulses_per_kwh, initial_value)
 exit_counter_core_flag = False
 
 
-async def send_to_remote(counter, configs):
+async def send_to_remote(counter: Counter, configs):
     delay_min = configs.get("reportInterval", 60)
     while True:
         await asyncio.sleep(delay_min * 60)
@@ -43,15 +44,13 @@ def start_pulse():
     print("Current value %s" % counter)
 
     while not exit_counter_core_flag:
-        before = pulse.value()
-        time.sleep_ms(25)
-        after = pulse.value()
+        if pulse.value() == 0:
+            time.sleep_ms(25)
+            if pulse.value() == 1:
+                counter.inc()
 
-        if before == 0 and after == 1:
-            counter.inc()
-
-            print("Counter: %d" % counter.value)
-            print("Electric meter: %s" % (counter))
+                print("Counter: %d" % counter.value)
+                print("Electric meter: %s" % (counter))
     _thread.exit()
 
 
