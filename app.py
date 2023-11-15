@@ -9,6 +9,7 @@ import time
 from counter import Counter
 import asyncio
 import urequests
+from phew import logging
 
 configs = {}
 try:
@@ -56,10 +57,10 @@ async def send_to_remote(counter: Counter, configs):
                 },
                 data=json.dumps(post_data),
             ).json()
-            print("resp=", resp)
-            print("Send value to remote: %s" % counter)
+            logging.info(resp)
+            logging.info("Send value to remote: %s" % counter)
         except Exception as error:
-            print("An exception occurred:", error)
+            logging.error("An exception occurred:", error)
 
 
 def start_pulse():
@@ -67,8 +68,8 @@ def start_pulse():
 
     pulse = Pin(13, Pin.IN, Pin.PULL_UP)
 
-    print("Electric meter started!")
-    print("Current value %s" % counter)
+    logging.info("Electric meter started!")
+    logging.info("Current value %s" % counter)
 
     while not exit_counter_core_flag:
         if pulse.value() == 0:
