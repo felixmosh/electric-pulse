@@ -8,6 +8,7 @@ from machine import Pin
 import time
 from counter import Counter
 import asyncio
+import urequests
 
 configs = {}
 try:
@@ -23,16 +24,42 @@ except Exception:
 
 
 pulses_per_kwh = configs.get("pulsesPerKwh", constants.PULSES_FOR_KWH)
-initial_value = 2040
+initial_value = configs.get("initialValue", 0) * pulses_per_kwh
 counter = Counter(pulses_per_kwh, initial_value)
 exit_counter_core_flag = False
 
 
 async def send_to_remote(counter: Counter, configs):
-    delay_min = configs.get("reportInterval", 60)
+    delay_min = configs.get("reportInterval", 1)
+    api = configs.get("api", {})
+    url = access_token = api.get("endpoint", None)
+    access_token = api.get("accessToken", None)
+
+    if url is None:
+        print("Api url is not defined")
+        return
+    if access_token is None:
+        print("Api access_token is not defined")
+        return
+
+    print(f"Remote server configured properly, url={url}, access_token={access_token}")
+
     while True:
         await asyncio.sleep(delay_min * 60)
-        print("Send value to remote: %s" % counter)
+        post_data = {"value": counter.value}
+        try:
+            resp = urequests.post(
+                f"{url}/api/meter/readings/add",
+                headers={
+                    "content-type": "application/json",
+                    "authorization": f"Bearer {access_token}",
+                },
+                data=json.dumps(post_data),
+            ).json()
+            print("resp=", resp)
+            print("Send value to remote: %s" % counter)
+        except Exception as error:
+            print("An exception occurred:", error)
 
 
 def start_pulse():
