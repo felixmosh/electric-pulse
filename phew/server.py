@@ -1,4 +1,4 @@
-import uasyncio, os, time
+import asyncio, os, time
 import json
 from . import logging
 import base64
@@ -406,4 +406,4 @@ def basic_auth(username, password, realm="Protected area"):
 
 def start(host="0.0.0.0", port=80):
     logging.info("> starting web server on port {}".format(port))
-    return uasyncio.start_server(_handle_request, host, port)
+    return asyncio.start_server(_handle_request, host, port)

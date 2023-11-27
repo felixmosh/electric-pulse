@@ -1,28 +1,38 @@
-import uasyncio
-import webapp
+import asyncio
+from machine import Pin
+import requests
 import os
-import constants
 import json
 import _thread
-from machine import Pin
 import time
-from counter import Counter
-import asyncio
-import urequests
 from phew import logging
+import webapp
+import constants
+from counter import Counter
 
 configs = {}
+version = "0.0.0"
+
 try:
     os.stat(constants.CONFIGS_FILE)
 
     # File was found, attempt to connect to wifi...
     with open(constants.CONFIGS_FILE) as f:
-        wifi_current_attempt = 1
         configs = json.load(f)
+
+    with open(constants.VERSION_FILE) as f:
+        version = f.readline()
 
 except Exception:
     configs = {}
 
+
+def versiontuple(v):
+    return tuple(map(int, (v.split("."))))
+
+
+version = versiontuple(version)
+logging.info(f"Firmware version: {version}")
 
 pulses_per_kwh = configs.get("pulsesPerKwh", constants.PULSES_FOR_KWH)
 initial_value = configs.get("initialValue", 0) * pulses_per_kwh
@@ -43,13 +53,13 @@ async def send_to_remote(counter: Counter, configs):
         print("Api access_token is not defined")
         return
 
-    print(f"Remote server configured properly, url={url}, access_token={access_token}")
+    print(f"Remote server configured properly, url={url}")
 
     while True:
         await asyncio.sleep(delay_min * 60)
         post_data = {"value": counter.value}
         try:
-            resp = urequests.post(
+            resp = requests.post(
                 f"{url}/api/meter/readings/add",
                 headers={
                     "content-type": "application/json",
@@ -93,7 +103,7 @@ def on_close():
 
 
 try:
-    loop = uasyncio.get_event_loop()
+    loop = asyncio.get_event_loop()
     loop.create_task(webapp.start(configs, counter, on_close))
     loop.create_task(send_to_remote(counter, configs))
     loop.run_forever()

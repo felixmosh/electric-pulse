@@ -4,9 +4,8 @@ import constants
 import json
 import machine
 import os
-import utime
+import time
 import _thread
-import uasyncio
 
 onboard_led = machine.Pin("LED", machine.Pin.OUT)
 
@@ -16,13 +15,13 @@ def blink(times=1):
 
     for _x in range(times):
         onboard_led.value(1)
-        utime.sleep(0.25)
+        time.sleep(0.25)
         onboard_led.value(0)
-        utime.sleep(0.25)
+        time.sleep(0.25)
 
 
 def machine_reset():
-    utime.sleep(1)
+    time.sleep(1)
     print("Resetting...")
     machine.reset()
 
