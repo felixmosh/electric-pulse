@@ -23,6 +23,7 @@ async def render_template(template, **kwargs):
             # no more magic to handle, just return what's left
             if not match:
                 yield data[token_caret:]
+                f.close()
                 break
 
             expression = data[start + 2 : end].strip()

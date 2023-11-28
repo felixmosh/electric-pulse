@@ -1,7 +1,7 @@
 import asyncio, os, time
 import json
 from . import logging
-import base64
+import app.lib.base64 as base64
 
 _routes = []
 catchall_handler = None
@@ -322,6 +322,7 @@ async def _handle_request(reader, writer):
             while True:
                 chunk = f.read(1024)
                 if not chunk:
+                    f.close()
                     break
                 writer.write(chunk)
                 await writer.drain()

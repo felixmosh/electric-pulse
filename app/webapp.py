@@ -1,6 +1,12 @@
-from phew import access_point, connect_to_wifi, is_connected_to_wifi, dns, server
-from phew.template import render_template
-import constants
+from app.lib.phew import (
+    access_point,
+    connect_to_wifi,
+    is_connected_to_wifi,
+    dns,
+    server,
+)
+from app.lib.phew.template import render_template
+import app.constants as constants
 import json
 import machine
 import os
