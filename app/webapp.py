@@ -130,14 +130,14 @@ def application_mode(configs, counter, on_close):
         return "Not found.", 404
 
 
-def start(configs, counter, on_close):
+def start(configs: dict, counter, on_close):
     # Figure out which mode to start up in...
     if configs is not None and "wifi" in configs:
         wifi_current_attempt = 1
 
         while wifi_current_attempt <= constants.WIFI_MAX_ATTEMPTS:
             blink(wifi_current_attempt)
-            wifi = configs.get("wifi")
+            wifi = configs.get("wifi", {})
             ssid = wifi.get("ssid")
             wifi_password = wifi.get("password")
             print(f"Connecting to wifi, ssid {ssid}, attempt {wifi_current_attempt}")

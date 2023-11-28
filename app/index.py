@@ -37,7 +37,7 @@ def start_pulse():
     _thread.exit()
 
 
-async def send_to_remote(counter: Counter, configs):
+async def send_to_remote(counter: Counter, configs: dict):
     delay_min = configs.get("reportInterval", 1)
     api = configs.get("api", {})
     url = access_token = api.get("endpoint", None)
@@ -70,7 +70,7 @@ async def send_to_remote(counter: Counter, configs):
             logging.error("An exception occurred:", error)
 
 
-def start(configs):
+def start(configs: dict):
     global exit_counter_core_flag, counter
 
     counter.pulses_per_kwh = configs.get("pulsesPerKwh", constants.PULSES_FOR_KWH)
