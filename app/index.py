@@ -4,7 +4,7 @@ import requests
 import json
 import _thread
 import time
-from app.lib.phew import logging
+from app.lib.phew import discount_from_wifi, logging
 import app.webapp as webapp
 import app.constants as constants
 from app.counter import Counter
@@ -72,11 +72,12 @@ async def send_to_remote(counter: Counter, configs: dict):
                     "authorization": f"Bearer {access_token}",
                 },
                 data=json.dumps({"value": counter.value}),
+                timeout=20,
             ).json()
             logging.info(resp)
             logging.info("Sent value to remote: %s" % counter)
         except Exception as error:
-            logging.error("An exception occurred:", error)
+            logging.error("An exception occurred: %s" % error)
 
 
 def start(configs: dict):
@@ -94,4 +95,7 @@ def start(configs: dict):
         loop.create_task(send_to_remote(counter, configs))
         loop.run_forever()
     except KeyboardInterrupt:
+        discount_from_wifi()
         on_close()
+    except Exception as e:
+        logging.error("Fatal error: %s" % e)

@@ -29,10 +29,17 @@ def get_ip_address():
 
 
 def is_connected_to_wifi():
-    import network, time
+    import network
 
     wlan = network.WLAN(network.STA_IF)
     return wlan.isconnected()
+
+
+def discount_from_wifi():
+    import network
+
+    wlan = network.WLAN(network.STA_IF)
+    wlan.disconnect()
 
 
 # helper method to quickly get connected to wifi
