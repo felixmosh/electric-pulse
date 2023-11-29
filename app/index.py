@@ -43,10 +43,10 @@ async def send_to_remote(counter: Counter, configs: dict):
     url = access_token = api.get("endpoint", None)
     access_token = api.get("accessToken", None)
 
-    if url is None:
+    if not url:
         print("Api url is not defined")
         return
-    if access_token is None:
+    if not access_token:
         print("Api access_token is not defined")
         return
 
