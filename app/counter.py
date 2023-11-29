@@ -9,5 +9,8 @@ class Counter:
     def inc(self):
         self.value += 1
 
+    def kwh(self):
+        return math.floor(self.value / self.pulses_per_kwh * 100) / 100
+
     def __str__(self):
-        return "%.2f kWh" % (math.floor(self.value / self.pulses_per_kwh * 100) / 100)
+        return "%.2f kWh" % self.kwh()

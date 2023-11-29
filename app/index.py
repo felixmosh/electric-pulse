@@ -37,6 +37,14 @@ def start_pulse():
     _thread.exit()
 
 
+def update_initial_val_and_save(counter: Counter, configs: dict):
+    configs["initialValue"] = counter.kwh()
+
+    with open(constants.CONFIGS_FILE, "w") as f:
+        json.dump(configs, f)
+        f.close()
+
+
 async def send_to_remote(counter: Counter, configs: dict):
     delay_min = configs.get("reportInterval", 1)
     api = configs.get("api", {})
@@ -54,15 +62,16 @@ async def send_to_remote(counter: Counter, configs: dict):
 
     while True:
         await asyncio.sleep(delay_min * 60)
-        post_data = {"value": counter.value}
         try:
+            update_initial_val_and_save(counter, configs)
+            logging.info("Value saved locally: %s" % counter)
             resp = requests.post(
                 f"{url}/api/meter/readings/add",
                 headers={
                     "content-type": "application/json",
                     "authorization": f"Bearer {access_token}",
                 },
-                data=json.dumps(post_data),
+                data=json.dumps({"value": counter.value}),
             ).json()
             logging.info(resp)
             logging.info("Sent value to remote: %s" % counter)
@@ -74,7 +83,7 @@ def start(configs: dict):
     global exit_counter_core_flag, counter
 
     counter.pulses_per_kwh = configs.get("pulsesPerKwh", constants.PULSES_FOR_KWH)
-    counter.value = configs.get("initialValue", 0) * counter.pulses_per_kwh
+    counter.value = configs.setdefault("initialValue", 0) * counter.pulses_per_kwh
 
     _thread.start_new_thread(start_pulse, ())
     # start_pulse()
