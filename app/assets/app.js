@@ -4,7 +4,9 @@ window.addEventListener("load", () => {
   };
 
   document.getElementById("resetBtn").onclick = function () {
-    window.location.href = "/reset";
+    if (confirm("Are you sure that you want to reset all config?")) {
+      window.location.href = "/reset";
+    }
   };
 
   async function getCounter() {
