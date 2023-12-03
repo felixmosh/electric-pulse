@@ -1,7 +1,6 @@
 import asyncio, os, time
 import json
 from . import logging
-import app.lib.base64 as base64
 
 _routes = []
 catchall_handler = None
@@ -385,12 +384,14 @@ def serve_file(file):
 
 
 def basic_auth(username, password, realm="Protected area"):
+    import ubinascii
+
     def _basic_auth_middleware(request):
         if "authorization" in request.headers:
             parts = request.headers["authorization"].split(" ")
 
             if len(parts) == 2 and parts[0].lower() == "basic":
-                value = base64.b64decode(parts[1]).decode().split(":")
+                value = str(ubinascii.a2b_base64(parts[1]), "ascii").split(":")  # type: ignore
 
                 if len(value) == 2 and value[0] == username and value[1] == password:
                     return None
