@@ -72,7 +72,9 @@ async def send_to_remote(counter: Counter, configs: dict, ota: OTAUpdater):
                     "content-type": "application/json",
                     "authorization": f"Bearer {access_token}",
                 },
-                data=json.dumps({"value": counter.value}),
+                data=json.dumps(
+                    {"value": counter.value, "version": ota.current_version}
+                ),
                 timeout=20,
             ).json()
             logging.info(resp)
