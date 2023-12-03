@@ -24,6 +24,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           release_branches: "production"
+          custom_release_rules: "bug:patch:Bug Fixes,refactor:patch:Refactor,breaking:major:Breaking Changes"
 
       - name: Make release tar
         run: tar -cvf release.tar ./app main.py

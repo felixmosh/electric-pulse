@@ -80,7 +80,7 @@ async def send_to_remote(counter: Counter, configs: dict, ota: OTAUpdater):
 
             if ota.check_and_download():
                 logging.info(f"New version found: {ota.latest_version}")
-                raise Exception("Resetting the device to apply new version.")
+                raise KeyboardInterrupt
 
         except Exception as error:
             logging.error("An exception occurred: %s" % error)
@@ -92,18 +92,16 @@ def start(configs: dict, ota: OTAUpdater):
     counter.pulses_per_kwh = configs.get("pulsesPerKwh", constants.PULSES_FOR_KWH)
     counter.value = configs.setdefault("initialValue", 0) * counter.pulses_per_kwh
 
-    _thread.start_new_thread(start_pulse, ())
     # start_pulse()
     try:
+        _thread.start_new_thread(start_pulse, ())
         loop = asyncio.get_event_loop()
         loop.create_task(webapp.start(configs, counter, on_close))
         loop.create_task(send_to_remote(counter, configs, ota))
         loop.run_forever()
-    except KeyboardInterrupt:
-        pass
-    except Exception as e:
-        logging.error("Fatal error: %s" % e)
-    finally:
+    except KeyboardInterrupt as e:
         on_close()
         discount_from_wifi()
         reset()
+    except Exception as e:
+        logging.error("Fatal error: %s" % e)

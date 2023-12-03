@@ -7,23 +7,12 @@ from app.lib.phew import (
 )
 from app.lib.phew.template import render_template
 import app.constants as constants
+from app.blink import blink, onboard_led
 import json
 import machine
 import os
 import time
 import _thread
-
-onboard_led = machine.Pin("LED", machine.Pin.OUT)
-
-
-def blink(times=1):
-    global onboard_led
-
-    for _x in range(times):
-        onboard_led.value(1)
-        time.sleep(0.25)
-        onboard_led.value(0)
-        time.sleep(0.25)
 
 
 def machine_reset():
