@@ -99,9 +99,10 @@ def start(configs: dict, ota: OTAUpdater):
         loop.create_task(webapp.start(configs, counter, on_close))
         loop.create_task(send_to_remote(counter, configs, ota))
         loop.run_forever()
+    except KeyboardInterrupt:
+        pass
     except Exception as e:
         logging.error("Fatal error: %s" % e)
-        raise
     finally:
         on_close()
         discount_from_wifi()

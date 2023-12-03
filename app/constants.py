@@ -10,4 +10,4 @@ CONFIGS_FILE = "configs.json"
 VERSION_FILE = "version.txt"
 WIFI_MAX_ATTEMPTS = 3
 
-RELEASE_REPO = "felixmosh/ota-script-test"
+RELEASE_REPO = "felixmosh/electric-pulse"
