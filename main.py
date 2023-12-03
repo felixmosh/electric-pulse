@@ -2,17 +2,18 @@ import os
 import json
 import app.constants as constants
 from app.lib.phew import logging
-import app.index as app
+from app.ota_updater import OTAUpdater
+import machine
 
 configs = {}
-version = "0.0.0"
+version = "v0.0.0"
 
 try:
     os.stat(constants.CONFIGS_FILE)
 
     # File was found, attempt to connect to wifi...
     with open(constants.CONFIGS_FILE) as f:
-        configs = json.load(f)
+        configs: dict = json.load(f)
         f.close()
 
     with open(constants.VERSION_FILE) as f:
@@ -23,5 +24,14 @@ except Exception:
     configs = {}
 
 logging.info(f"Firmware version: {version}")
+configs["version"] = version
 
-app.start(configs)
+ota = OTAUpdater(constants.RELEASE_REPO, current_version=version)
+
+if ota.apply_update():
+    print("Resetting...")
+    machine.reset()
+else:
+    import app.index as app
+
+    app.start(configs, ota)

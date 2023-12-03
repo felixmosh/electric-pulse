@@ -1,5 +1,5 @@
 import asyncio
-from machine import Pin
+from machine import Pin, reset
 import requests
 import json
 import _thread
@@ -7,6 +7,7 @@ import time
 from app.lib.phew import discount_from_wifi, logging
 import app.webapp as webapp
 import app.constants as constants
+from app.ota_updater import OTAUpdater
 from app.counter import Counter
 
 exit_counter_core_flag = False
@@ -45,7 +46,7 @@ def update_initial_val_and_save(counter: Counter, configs: dict):
         f.close()
 
 
-async def send_to_remote(counter: Counter, configs: dict):
+async def send_to_remote(counter: Counter, configs: dict, ota: OTAUpdater):
     delay_min = configs.get("reportInterval", 1)
     api = configs.get("api", {})
     url = access_token = api.get("endpoint", None)
@@ -76,11 +77,16 @@ async def send_to_remote(counter: Counter, configs: dict):
             ).json()
             logging.info(resp)
             logging.info("Sent value to remote: %s" % counter)
+
+            if ota.check_and_download():
+                logging.info(f"New version found: {ota.latest_version}")
+                raise Exception("Resetting the device to apply new version.")
+
         except Exception as error:
             logging.error("An exception occurred: %s" % error)
 
 
-def start(configs: dict):
+def start(configs: dict, ota: OTAUpdater):
     global exit_counter_core_flag, counter
 
     counter.pulses_per_kwh = configs.get("pulsesPerKwh", constants.PULSES_FOR_KWH)
@@ -88,14 +94,15 @@ def start(configs: dict):
 
     _thread.start_new_thread(start_pulse, ())
     # start_pulse()
-
     try:
         loop = asyncio.get_event_loop()
         loop.create_task(webapp.start(configs, counter, on_close))
-        loop.create_task(send_to_remote(counter, configs))
+        loop.create_task(send_to_remote(counter, configs, ota))
         loop.run_forever()
-    except KeyboardInterrupt:
-        discount_from_wifi()
-        on_close()
     except Exception as e:
         logging.error("Fatal error: %s" % e)
+        raise
+    finally:
+        on_close()
+        discount_from_wifi()
+        reset()
