@@ -9,5 +9,6 @@ ASSETS_PATH = "app/assets/"
 CONFIGS_FILE = "configs.json"
 VERSION_FILE = "version.txt"
 WIFI_MAX_ATTEMPTS = 3
+TZ_OFFSET = 2
 
 RELEASE_REPO = "felixmosh/electric-pulse"

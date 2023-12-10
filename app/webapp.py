@@ -3,6 +3,7 @@ from app.lib.phew import (
     connect_to_wifi,
     is_connected_to_wifi,
     dns,
+    ntp,
     server,
 )
 from app.lib.phew.template import render_template
@@ -140,6 +141,7 @@ def start(configs: dict, counter, on_close):
                 wifi_current_attempt += 1
 
         if is_connected_to_wifi():
+            ntp.settime(constants.TZ_OFFSET)
             application_mode(configs, counter, on_close)
         else:
             # Bad configuration, delete the credentials file, reboot
