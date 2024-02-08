@@ -102,7 +102,7 @@ def start(configs: dict, ota: OTAUpdater):
         loop.create_task(send_to_remote(counter, configs, ota))
         loop.run_forever()
     except KeyboardInterrupt as e:
-        logging.info("Keyboard interrupt")
+        logging.info("External stop")
     except Exception as e:
         logging.error("Fatal error: %s" % e)
     finally:
