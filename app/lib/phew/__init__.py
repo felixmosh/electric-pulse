@@ -35,7 +35,7 @@ def is_connected_to_wifi():
     return wlan.isconnected()
 
 
-def discount_from_wifi():
+def disconnect_from_wifi():
     import network
 
     wlan = network.WLAN(network.STA_IF)

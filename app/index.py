@@ -4,7 +4,7 @@ import requests
 import json
 import _thread
 import time
-from app.lib.phew import discount_from_wifi, logging
+from app.lib.phew import disconnect_from_wifi, logging
 import app.webapp as webapp
 import app.constants as constants
 from app.ota_updater import OTAUpdater
@@ -102,8 +102,10 @@ def start(configs: dict, ota: OTAUpdater):
         loop.create_task(send_to_remote(counter, configs, ota))
         loop.run_forever()
     except KeyboardInterrupt as e:
-        on_close()
-        discount_from_wifi()
-        reset()
+        logging.info("Keyboard interrupt")
     except Exception as e:
         logging.error("Fatal error: %s" % e)
+    finally:
+        on_close()
+        disconnect_from_wifi()
+        reset()
