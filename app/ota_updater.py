@@ -1,5 +1,6 @@
 import requests
 from app.lib.tarfile import TarFile, DIRTYPE
+from app.lib.phew import logging
 import os
 
 
@@ -35,7 +36,7 @@ class OTAUpdater:
                 latest_version = f.readline()
                 f.close()
 
-            print(f"Found new version: {latest_version}")
+            logging.info(f"Found new version: {latest_version}")
             self.rmtree(self.app_dir)
             os.remove("version.txt")
             os.remove("main.py")
@@ -46,7 +47,7 @@ class OTAUpdater:
 
             self.rmtree(self.new_version_dir)
 
-            print("OTA update applied succesfully!")
+            logging.info("OTA update applied succesfully!")
             return True
 
         return False
@@ -54,12 +55,12 @@ class OTAUpdater:
     def download_release(self, latest_release):
         assets = latest_release.get("assets", [])
         if not len(assets):
-            print("No assets to download")
+            logging.info("No assets to download")
             return
 
         tar_url = assets[0].get("browser_download_url")
         if not tar_url:
-            print("No tar_url to donwload")
+            logging.info("No tar_url to donwload")
             return
 
         asset_filename = (
@@ -75,7 +76,7 @@ class OTAUpdater:
         self.mkdir(self.new_version_dir)
 
         try:
-            print(f'Downloading "{tar_url}"...')
+            logging.info(f'Downloading "{tar_url}"...')
             resp = requests.get(tar_url, headers={"User-Agent": "MicroPython Client"})
 
             CHUNK_SIZE = 512  # bytes
@@ -87,12 +88,12 @@ class OTAUpdater:
                 outfile.close()
 
             resp.raw.close()
-            print(f'Downloaded successfully "{asset_filename}"')
+            logging.info(f'Downloaded successfully "{asset_filename}"')
 
             t = TarFile(asset_filename)
             for i in t:
                 path = self.new_version_dir + "/" + i.name
-                print(f"Extracting '{path}'")
+                logging.info(f"Extracting '{path}'")
                 if i.type == DIRTYPE:
                     self.mkdir(path[:-1])
                 else:
@@ -108,7 +109,7 @@ class OTAUpdater:
                 file.close()
 
         except Exception as e:
-            print(e)
+            logging.error(e)
 
     def compare_versions(self):
         latest_version = self.latest_version
@@ -119,7 +120,7 @@ class OTAUpdater:
         if self.current_version.startswith("v"):
             current_version = self.current_version[1:]
 
-        print(
+        logging.info(
             "currentVersion: %s, latestVersion: %s" % (current_version, latest_version)
         )
 
@@ -136,7 +137,7 @@ class OTAUpdater:
         return latest_version
 
     def get_latest_release(self):
-        print("Fetching latest release...")
+        logging.info("Fetching latest release...")
         latest_release = requests.get(
             f"https://api.github.com/repos/{self.github_repo}/releases/latest",
             headers={"User-Agent": "MicroPython Client"},
@@ -147,7 +148,7 @@ class OTAUpdater:
                 latest_release = latest_release.json()
                 return latest_release
         except Exception as e:
-            print("Exception", e)
+            logging.error("Exception", e)
         return None
 
     def mkdir(self, path: str):

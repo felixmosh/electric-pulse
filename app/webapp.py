@@ -5,6 +5,7 @@ from app.lib.phew import (
     dns,
     ntp,
     server,
+    logging,
 )
 from app.lib.phew.template import render_template
 import app.constants as constants
@@ -39,7 +40,7 @@ def static_assets(request, filename=""):
 
 
 def setup_mode(on_close):
-    print("Entering setup mode...")
+    logging.info("Entering setup mode...")
 
     @server.route("/")
     def ap_index(request):
@@ -78,7 +79,7 @@ def setup_mode(on_close):
 
 def application_mode(configs, counter, on_close):
     global onboard_led
-    print("Entering application mode.")
+    logging.info("Entering application mode.")
 
     auth_middleware = None
     ui = configs.get("ui")
@@ -130,12 +131,14 @@ def start(configs: dict, counter, on_close):
             wifi = configs.get("wifi", {})
             ssid = wifi.get("ssid")
             wifi_password = wifi.get("password")
-            print(f"Connecting to wifi, ssid {ssid}, attempt {wifi_current_attempt}")
+            logging.info(
+                f"Connecting to wifi, ssid {ssid}, attempt {wifi_current_attempt}"
+            )
 
             ip_address = connect_to_wifi(ssid, wifi_password)
 
             if is_connected_to_wifi():
-                print(f"Connected to wifi, IP address {ip_address}")
+                logging.info(f"Connected to wifi, IP address {ip_address}")
                 break
             else:
                 wifi_current_attempt += 1
@@ -146,8 +149,8 @@ def start(configs: dict, counter, on_close):
         else:
             # Bad configuration, delete the credentials file, reboot
             # into setup mode to get new credentials from the user.
-            print("Bad wifi connection!")
-            print(configs)
+            logging.warn("Bad wifi connection!")
+            logging.info(configs)
             os.remove(constants.CONFIGS_FILE)
             on_close()
             machine_reset()

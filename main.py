@@ -33,7 +33,7 @@ configs["version"] = version
 ota = OTAUpdater(constants.RELEASE_REPO, current_version=version)
 
 if ota.apply_update():
-    print("Resetting...")
+    logging.info("Resetting...")
     machine.reset()
 else:
     import app.index as app

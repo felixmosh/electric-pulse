@@ -1,6 +1,7 @@
 import machine, os, gc
+from .. import sdcard
 
-log_file = "log.txt"
+logfile_path = "/sd/logs"
 
 LOG_INFO = 0b00001
 LOG_WARNING = 0b00010
@@ -14,8 +15,50 @@ _logging_types = LOG_INFO | LOG_WARNING | LOG_ERROR | LOG_EXCEPTION
 # the log file will be truncated if it exceeds _log_truncate_at bytes in
 # size. the defaults values are designed to limit the log to at most
 # three blocks on the Pico
-_log_truncate_at = 11 * 1024
+_log_truncate_at = 11 * 1024 * 0  # disabled
 _log_truncate_to = 8 * 1024
+
+
+# Set the Chip Select (CS) pin high
+cs = machine.Pin(17, machine.Pin.OUT)
+
+# Intialize the SD Card
+spi = machine.SPI(
+    0,
+    baudrate=1000000,
+    polarity=0,
+    phase=0,
+    bits=8,
+    firstbit=machine.SPI.MSB,
+    sck=machine.Pin(18),
+    mosi=machine.Pin(19),
+    miso=machine.Pin(16),
+)
+sd = sdcard.SDCard(spi, cs)
+
+# Mount filesystem
+vfs = os.VfsFat(sd)
+os.mount(vfs, "/sd")
+
+
+def exists_dir(path) -> bool:
+    try:
+        os.listdir(path)
+        return True
+    except:
+        return False
+
+
+def mkdir(path: str):
+    try:
+        os.mkdir(path)
+    except OSError as exc:
+        if exc.args[0] == 17:
+            pass
+
+
+if not exists_dir(logfile_path):
+    mkdir(logfile_path)
 
 
 def datetime_string():
@@ -23,11 +66,15 @@ def datetime_string():
     return "{0:04d}-{1:02d}-{2:02d} {4:02d}:{5:02d}:{6:02d}".format(*dt)
 
 
+def date_string():
+    return datetime_string().split(" ")[0]
+
+
 def file_size(file):
     try:
         return os.stat(file)[6]
     except OSError:
-        return None
+        return 0
 
 
 def set_truncate_thresholds(truncate_at, truncate_to):
@@ -92,11 +139,13 @@ def log(level, text):
         datetime, level, round(gc.mem_free() / 1024), text
     )
     print(log_entry)
-    with open(log_file, "a") as logfile:
+    log_filename = "{0}/{1}.txt".format(logfile_path, date_string())
+
+    with open(log_filename, "a") as logfile:
         logfile.write(log_entry + "\n")
 
-    if _log_truncate_at and file_size(log_file) > _log_truncate_at:
-        truncate(log_file, _log_truncate_to)
+    if _log_truncate_at and file_size(log_filename) > _log_truncate_at:
+        truncate(log_filename, _log_truncate_to)
 
 
 def info(*items):

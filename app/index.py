@@ -53,13 +53,13 @@ async def send_to_remote(counter: Counter, configs: dict, ota: OTAUpdater):
     access_token = api.get("accessToken", None)
 
     if not url:
-        print("Api url is not defined")
+        logging.info("Api url is not defined")
         return
     if not access_token:
-        print("Api access_token is not defined")
+        logging.info("Api access_token is not defined")
         return
 
-    print(f"Remote server configured properly, url={url}")
+    logging.info(f"Remote server configured properly, url={url}")
 
     while True:
         await asyncio.sleep(delay_min * 60)
