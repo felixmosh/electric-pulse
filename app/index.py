@@ -54,31 +54,31 @@ async def send_to_remote(counter: Counter, configs: dict, ota: OTAUpdater):
 
     if not url:
         logging.info("Api url is not defined")
-        return
-    if not access_token:
+    elif not access_token:
         logging.info("Api access_token is not defined")
-        return
-
-    logging.info(f"Remote server configured properly, url={url}")
+    else:
+        logging.info(f"Remote server configured properly, url={url}")
 
     while True:
         await asyncio.sleep(delay_min * 60)
         try:
             update_initial_val_and_save(counter, configs)
             logging.info("Value saved locally: %s" % counter)
-            resp = requests.post(
-                f"{url}/api/meter/readings/add",
-                headers={
-                    "content-type": "application/json",
-                    "authorization": f"Bearer {access_token}",
-                },
-                data=json.dumps(
-                    {"value": counter.value, "version": ota.current_version}
-                ),
-                timeout=20,
-            ).json()
-            logging.info(resp)
-            logging.info("Sent value to remote: %s" % counter)
+
+            if url and access_token:
+                resp = requests.post(
+                    f"{url}/api/meter/readings/add",
+                    headers={
+                        "content-type": "application/json",
+                        "authorization": f"Bearer {access_token}",
+                    },
+                    data=json.dumps(
+                        {"value": counter.value, "version": ota.current_version}
+                    ),
+                    timeout=20,
+                ).json()
+                logging.info(resp)
+                logging.info("Sent value to remote: %s" % counter)
 
             if ota.check_and_download():
                 logging.info(f"New version found: {ota.latest_version}")
