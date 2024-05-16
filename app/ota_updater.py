@@ -37,18 +37,21 @@ class OTAUpdater:
                 f.close()
 
             logging.info(f"Found new version: {latest_version}")
-            self.rmtree(self.app_dir)
-            os.remove("version.txt")
-            os.remove("main.py")
+            try:
+                self.rmtree(self.app_dir)
+                os.remove("version.txt")
+                os.remove("main.py")
 
-            os.rename(self.new_version_dir + "/" + self.app_dir, self.app_dir)
-            os.rename(self.new_version_dir + "/version.txt", "version.txt")
-            os.rename(self.new_version_dir + "/main.py", "main.py")
+                os.rename(self.new_version_dir + "/" + self.app_dir, self.app_dir)
+                os.rename(self.new_version_dir + "/version.txt", "version.txt")
+                os.rename(self.new_version_dir + "/main.py", "main.py")
 
-            self.rmtree(self.new_version_dir)
+                self.rmtree(self.new_version_dir)
 
-            logging.info("OTA update applied succesfully!")
-            return True
+                logging.info("OTA update applied succesfully!")
+                return True
+            except Exception as e:
+                logging.error("OTA Update error: %s" % e)
 
         return False
 

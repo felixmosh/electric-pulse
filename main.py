@@ -4,7 +4,6 @@ import app.constants as constants
 from app.blink import blink
 from app.lib.phew import logging
 from app.ota_updater import OTAUpdater
-import machine
 
 configs = {}
 version = "v0.0.0"
@@ -33,7 +32,10 @@ configs["version"] = version
 ota = OTAUpdater(constants.RELEASE_REPO, current_version=version)
 
 if ota.apply_update():
+    import machine
+
     logging.info("Resetting...")
+    blink(2, "long")
     machine.reset()
 else:
     import app.index as app
