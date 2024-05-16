@@ -22,7 +22,7 @@ def on_close():
 
 def start_pulse():
     global exit_counter_core_flag, counter
-    pulse = Pin(13, Pin.IN, Pin.PULL_UP)
+    pulse = Pin(5, Pin.IN, Pin.PULL_UP)
 
     logging.info("Electric meter started!")
     logging.info("Current value %s" % counter)
